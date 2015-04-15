@@ -23,13 +23,12 @@ def parse_date(datestring):
     """
     Takes a date formatted like "2014-06-03 00:00:00.0"
     
-    
     Removes the bogus time, and returns a Python
     date object.
     """
     if datestring == None or datestring == '':
         return None
-
+    
     datestring = datestring[:10]
     return strptime(datestring, '%m/%d/%y').date()
 
@@ -44,10 +43,7 @@ def parse_html(html):
     for row in table.findAll('tr')[1:]:
         temp = []
         for column in row.findAll('td'):
-            print column
-            val = column.string.strip()
-            if val == "&nbsp;" or val == "N/A":
-                val = ""
+            val = clean_string(column.string)
             temp.append(val)
         data.append(temp)
     return data
