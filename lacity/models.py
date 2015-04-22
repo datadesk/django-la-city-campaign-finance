@@ -37,7 +37,7 @@ class LACityContribution(models.Model):
     lacitycommittee = models.ForeignKey('LACityCommittee', null=True, blank=True)
     
     class Meta:
-        ordering = ['date', '-amount']
+        ordering = ['date', '-amount_received', '-amount_paid']
     
     def __unicode__(self):
         return '%s: %s' % (self.pk, self.amount)
@@ -54,6 +54,7 @@ class LACityCommittee(models.Model):
     
     def __unicode__(self):
         return self.name
+
 
 class LACityCandidate(models.Model):
     """

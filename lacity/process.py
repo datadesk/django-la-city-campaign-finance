@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from datetime.datetime import strptime
+from datetime import datetime
 
 
 def clean_string(value, return_none=False):
@@ -30,7 +30,7 @@ def parse_date(datestring):
         return None
     
     datestring = datestring[:10]
-    return strptime(datestring, '%m/%d/%y').date()
+    return datetime.strptime(datestring, '%m/%d/%y').date()
 
 def parse_html(html):
     """

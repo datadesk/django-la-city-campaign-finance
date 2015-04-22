@@ -7,11 +7,11 @@ from lacity.models import (LACityContribution,
 logger = logging.getLogger('lacity')
 
 COLUMN_TO_FIELD = {
-    # 'Last Name': ,
-    # 'First Name': ,
-    # 'Committee ID': ,
-    # 'Committee Name': ,
-    # 'Committee Type': ,
+    'Last Name': 'first_name',
+    'First Name': 'last_name',
+    'Committee ID': 'committee_id',
+    'Committee Name': 'name',
+    'Committee Type': 'committee_type',
     'Office Type': 'office_type',
     'District Number': 'district_number',
     'Schedule': 'schedule',
@@ -55,11 +55,11 @@ class Command(BaseCommand):
             'viewtype': 'xl',
             'requesttimeout': '1500',
             'showall': 'yes',
-            'orderbydesc': 'no'
+            'orderbydesc': 'no',
             'REPT_TYPE': 'ALLCon',
             'PER_TYPE': 'A',
-            'D_BDATE': '01/01/1998',
-            'D_EDATE': '01/01/2000',
+            'D_BDATE': '01/01/2000',
+            'D_EDATE': '06/01/2000',
             # 'D_EDATE': '01/01/2020',
             'SCHEDULE': 'A,B,C',
         }
@@ -68,12 +68,25 @@ class Command(BaseCommand):
         # Parse the response
         logger.debug('Parsing LA City contributions')
         data = parse_html(resp.text)
+        print data
     
-    def load(self, data):
+    def get_or_create_candidate(self, data):
         """
-        Load our contributions into the database
+        Get or create a candidate object
         """
-        pass
+        try:
+            candidate_obj = LACityCandidate.objects.get(
+                first_name__iexact=data.get('first_name'),
+                last_name__iexact=data.get('last_name'),
+            )
+            return candidate_obj
+
+        except LACityCandidate.DoesNotExist:
+            candidate_obj = LACityCandidate.objects.create(
+                first_name=data.get('first_name'),
+                last_name=data.get('last_name'),
+            )
+        return candidate_obj
     
     def get_or_create_committee(self, data):
         """
@@ -85,14 +98,21 @@ class Command(BaseCommand):
             return committee_obj
 
         try:
-            committee_obj = Committee.objects.get(committee_id=data.get('committee_id'))
-        except Committee.DoesNotExist:
-            committee_obj = Committee.objects.create(
+            committee_obj = LACityCommittee.objects.get(
+                committee_id=data.get('committee_id')
+            )
+        except LACityCommittee.DoesNotExist:
+            committee_obj = LACityCommittee.objects.create(
                 committee_id=data.get('committee_id'),
-                name=data['committee_name'],
+                name=data['name'],
                 committee_type=data['committee_type'],
             )
 
         return committee_obj
-
+    
+    def load(self, data):
+        """
+        Load our contributions into the database
+        """
+        pass
 
