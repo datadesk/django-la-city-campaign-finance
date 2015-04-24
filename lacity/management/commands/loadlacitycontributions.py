@@ -70,8 +70,8 @@ class Command(BaseCommand):
             'REPT_TYPE': 'ALLCon',
             'PER_TYPE': 'A',
             'D_BDATE': '01/01/2000',
-            # 'D_EDATE': '06/01/2000',
-            'D_EDATE': '01/01/2020',
+            'D_EDATE': '06/01/2000',
+            # 'D_EDATE': '01/01/2020',
             'SCHEDULE': 'A,B,C',
         }
         logger.debug('Downloading LA City contributions')
