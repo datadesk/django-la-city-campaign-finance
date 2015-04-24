@@ -3,3 +3,4 @@
 *.pyc
 django.log
 django.log*
+db.sqlite3
