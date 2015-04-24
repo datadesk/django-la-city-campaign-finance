@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+# The rows in our data that have dates
+# we will need to parse.
 DATE_ROWS = [9, 10, 11, 12]
 
 def clean_string(value, return_none=False):
