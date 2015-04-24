@@ -33,7 +33,7 @@ class LACityContribution(models.Model):
     document_id = models.CharField(max_length=250, blank=True)
     record_id = models.CharField(max_length=250, blank=True)
     # So we can keep track of when it was loaded
-    load_date = models.DateField(auto_now_add=True, auto_now=False)
+    load_date = models.DateField(auto_now_add=True)
     lacitycommittee = models.ForeignKey('LACityCommittee', null=True, blank=True)
     
     class Meta:

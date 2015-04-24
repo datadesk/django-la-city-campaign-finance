@@ -1,54 +1,65 @@
 import logging
 import requests
+from collections import OrderedDict
+from lacity.process import parse_html, parse_date
 from django.core.management.base import BaseCommand
-from lacity.process import parse_html
 from lacity.models import (LACityContribution,
     LACityCandidate, LACityCommittee)
-logger = logging.getLogger('lacity')
 
-COLUMN_TO_FIELD = {
-    'Last Name': 'first_name',
-    'First Name': 'last_name',
-    'Committee ID': 'committee_id',
-    'Committee Name': 'name',
-    'Committee Type': 'committee_type',
-    'Office Type': 'office_type',
-    'District Number': 'district_number',
-    'Schedule': 'schedule',
-    'Type': 'contribution_type',
-    'Period Beg Date': 'filing_start_date',
-    'Period End Date': 'filing_end_date',
-    'Election Date': 'election_date',
-    'Date': 'date',
-    'Amount Rcvd': 'amount_received',
-    'Amount Pd': 'amount_paid',
-    'Description': 'description',
-    'Contributor First Name': 'contributor_first_name',
-    'Contributor Last Name': 'contributor_last_name',
-    'Contributor Address': 'contributor_address_line_one',
-    'Contributor Address 2': 'contributor_address_line_two',
-    'Contributor City': 'contributor_city',
-    'Contributor State': 'contributor_state',
-    'Contributor Zip Code': 'contributor_zip_code',
-    'Contributor Zip Code Ext': 'contributor_zip_code_ext',
-    'Occupation': 'occupation',
-    'Employer': 'employer',
-    'Int Name': 'intermediary_name',
-    'Int City': 'intermediary_city',
-    'Int State': 'intermediary_state',
-    'Int Zip Code': 'intermediary_zip_code',
-    'Int Occupation': 'intermediary_occupation',
-    'Int Employer': 'intermediary_employer',
-    'Memo': 'memo',
-    'Doc ID': 'document_id',
-    'Rec ID': 'record_id',
-}
+# Some globals
+logger = logging.getLogger('lacity')
+COLUMN_TO_FIELD = OrderedDict([
+    ('Last Name', 'last_name'),
+    ('First Name', 'first_name'),
+    ('Committee ID', 'committee_id'),
+    ('Committee Name', 'name'),
+    ('Committee Type', 'committee_type'),
+    ('Office Type', 'office_type'),
+    ('District Number', 'district_number'),
+    ('Schedule', 'schedule'),
+    ('Type', 'contribution_type'),
+    ('Period Beg Date', 'filing_start_date'),
+    ('Period End Date', 'filing_end_date'),
+    ('Election Date', 'election_date'),
+    ('Date', 'date'),
+    ('Amount Rcvd', 'amount_received'),
+    ('Amount Pd', 'amount_paid'),
+    ('Description', 'description'),
+    ('Contributor First Name', 'contributor_first_name'),
+    ('Contributor Last Name', 'contributor_last_name'),
+    ('Contributor Address', 'contributor_address_line_one'),
+    ('Contributor Address 2', 'contributor_address_line_two'),
+    ('Contributor City', 'contributor_city'),
+    ('Contributor State', 'contributor_state'),
+    ('Contributor Zip Code', 'contributor_zip_code'),
+    ('Contributor Zip Code Ext', 'contributor_zip_code_ext'),
+    ('Occupation', 'occupation'),
+    ('Employer', 'employer'),
+    ('Int Name', 'intermediary_name'),
+    ('Int City', 'intermediary_city'),
+    ('Int State', 'intermediary_state'),
+    ('Int Zip Code', 'intermediary_zip_code'),
+    ('Int Occupation', 'intermediary_occupation'),
+    ('Int Employer', 'intermediary_employer'),
+    ('Memo', 'memo'),
+    ('Doc ID', 'document_id'),
+    ('Rec ID', 'record_id'),
+])
+HEADERS = COLUMN_TO_FIELD.values()
+FIELD_TO_COLUMN = dict(zip(COLUMN_TO_FIELD.values(), COLUMN_TO_FIELD.keys()))
+CONTRIBUTION_FIELDS = [i.name for i in LACityContribution._meta.get_fields()]
 
 
 class Command(BaseCommand):
     help = "Download, parse and load L.A. City campaign contributions"
     
     def handle(self, *args, **options):
+        # Just for now
+        LACityContribution.objects.all().delete()
+        LACityCandidate.objects.all().delete()
+        LACityCommittee.objects.all().delete()
+        # Make the committee lookup more efficient
+        self.committee_cache = {}
         # Grab the data
         base_url = "http://ethics.lacity.org/disclosure/campaign/search/public_search_results.cfm"
         payload = {
@@ -68,7 +79,8 @@ class Command(BaseCommand):
         # Parse the response
         logger.debug('Parsing LA City contributions')
         data = parse_html(resp.text)
-        print data
+        # Load it into the db
+        self.load(data)
     
     def get_or_create_candidate(self, data):
         """
@@ -79,13 +91,12 @@ class Command(BaseCommand):
                 first_name__iexact=data.get('first_name'),
                 last_name__iexact=data.get('last_name'),
             )
-            return candidate_obj
-
         except LACityCandidate.DoesNotExist:
             candidate_obj = LACityCandidate.objects.create(
                 first_name=data.get('first_name'),
                 last_name=data.get('last_name'),
             )
+        
         return candidate_obj
     
     def get_or_create_committee(self, data):
@@ -93,26 +104,45 @@ class Command(BaseCommand):
         Retrieve a committee object from the database,
         or create one on the fly.
         """
-        committee_obj = self.committee_cache.get(data.get('committee_id'))
+        committee_id = data.get('committee_id')
+        committee_obj = self.committee_cache.get(committee_id)
         if committee_obj:
             return committee_obj
 
         try:
             committee_obj = LACityCommittee.objects.get(
-                committee_id=data.get('committee_id')
+                committee_id=committee_id
             )
         except LACityCommittee.DoesNotExist:
+            candidate_obj = self.get_or_create_candidate(data)
             committee_obj = LACityCommittee.objects.create(
-                committee_id=data.get('committee_id'),
+                committee_id=committee_id,
                 name=data['name'],
                 committee_type=data['committee_type'],
+                lacitycandidate=candidate_obj,
             )
-
+        
+        # Set the cache and return the object.
+        self.committee_cache[committee_id] = committee_obj
         return committee_obj
     
     def load(self, data):
         """
         Load our contributions into the database
         """
-        pass
-
+        # make a list for our bulk create
+        bulk_contribs = []
+        for contribution in data:
+            # Make it a little easier to work with
+            data_dict = dict(zip(HEADERS, contribution))
+            # Grab/create our committee and candidate objects
+            committee_obj = self.get_or_create_committee(data_dict)
+            # make the contrib object
+            fields = dict((k, v) for k, v in data_dict.items() if k in CONTRIBUTION_FIELDS)
+            contrib = LACityContribution(**fields)
+            contrib.lacitycommittee = committee_obj
+            bulk_contribs.append(contrib)
+        # Run our bulk create
+        logger.debug('Running bulk create on %s contributions' % len(bulk_contribs))
+        LACityContribution.objects.bulk_create(bulk_contribs)
+        logger.debug("Finished loading contribs")

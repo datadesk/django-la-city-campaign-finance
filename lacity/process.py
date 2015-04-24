@@ -1,6 +1,8 @@
+import re
 from bs4 import BeautifulSoup
 from datetime import datetime
 
+DATE_RE = re.compile(r'\d\d/\d\d/\d\d')
 
 def clean_string(value, return_none=False):
     """
@@ -44,6 +46,10 @@ def parse_html(html):
         temp = []
         for column in row.findAll('td'):
             val = clean_string(column.string)
+            # see if we have a date and parse it
+            date = DATE_RE.search(val)
+            if date:
+                val = parse_date(val)
             temp.append(val)
         data.append(temp)
     return data
