@@ -40,7 +40,7 @@ class LACityContribution(models.Model):
         ordering = ['date', '-amount_received', '-amount_paid']
     
     def __unicode__(self):
-        return '%s: %s' % (self.pk, self.amount)
+        return '%s: %s' % (self.pk, self.amount_received)
 
 
 class LACityCommittee(models.Model):

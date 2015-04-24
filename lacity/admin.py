@@ -7,57 +7,81 @@ class LACityCandidateAdmin(admin.ModelAdmin):
 
 
 class LACityCommitteeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'committee_id', 'committee_type', 'lacitycandidate']
+    list_display = [
+        'name',
+        'committee_id',
+        'committee_type',
+        'lacitycandidate'
+    ]
+    raw_id_fields = ('lacitycandidate',)
 
 
 class LACityContributionAdmin(admin.ModelAdmin):
-    pass
-    # date_hierarchy = 'filing_start_date'
-    # list_display = ['amount', 'committee',
-    #     'first_name', 'last_name', 'occupation', 'employer',
-    #     'city', 'state', 'initial_category',
-    #     'verified_category', 'date', 'record_id', 'entry_type']
-    # search_fields = ['committee__name', 'first_name',
-    #     'last_name', 'occupation', 'employer', 'city',
-    #     'state', 'zip_code', 'initial_category',
-    #     'record_id', 'description']
-    # list_filter = ['entry_type', 'contribution_type',
-    #     'initial_category', 'verified_category', 'committee']
-    # list_editable = ['initial_category', 'verified_category']
-    # fieldsets = (
-    #     (None, {
-    #         'fields': (
-    #             ('amount', 'description'),
-    #             'date', 'initial_category',
-    #             ('entry_type', 'is_unitemized', 'verified_category'),
-    #         ),
-    #     }),
-    #     ('Contributor', {
-    #         'fields': (
-    #             ('first_name', 'last_name'),
-    #             ('occupation', 'employer'),
-    #             ('address_line_one', 'address_line_two'),
-    #             ('city', 'state', 'zip_code'),
-    #             'candidate_to_self',
-    #         ),
-    #     }),
-    #     ('Intermediary', {
-    #         'fields': (
-    #             ('intermediary_name', 'intermediary_city'),
-    #             ('intermediary_state', 'intermediary_zip_code'),
-    #             ('intermediary_occupation', 'intermediary_employer'),
-    #         ),
-    #     }),
-    #     ('Meta', {
-    #         'fields': (
-    #             ('schedule', 'contribution_type'),
-    #             ('filing_start_date', 'filing_end_date'),
-    #             ('document_id', 'record_id'),
-    #             'committee', 'clean_city',
-    #         ),
-    #     }),
-    # )
-
+    list_display = [
+        'amount_received',
+        'amount_paid',
+        'load_date',
+        'date',
+        'lacitycommittee',
+        'contributor_first_name',
+        'contributor_last_name',
+        'occupation',
+        'employer',
+        'schedule',
+        'contribution_type',
+        'document_id',
+        'record_id',
+    ]
+    search_fields = [
+        'lacitycommittee',
+        'contributor_first_name',
+        'contributor_last_name',
+        'occupation',
+        'employer',
+        'contributor_city',
+        'document_id',
+        'record_id',
+    ]
+    list_filter = [
+        'schedule',
+        'contribution_type',
+    ]
+    raw_id_fields = ('lacitycommittee',)
+    readonly_fields = ('load_date',)
+    fieldsets = (
+        (None, {
+            'fields': (
+                ('amount_received', 'amount_paid'),
+                ('date', 'lacitycommittee'),
+            ),
+        }),
+        ('Meta', {
+            'fields': (
+                ('schedule', 'contribution_type'),
+                ('filing_start_date', 'filing_end_date'),
+                ('election_date', 'load_date'),
+                ('office_type', 'district_number'),
+                ('document_id', 'record_id'),
+                'memo', 'description',
+            ),
+        }),
+        ('Contributor', {
+            'fields': (
+                ('contributor_first_name', 'contributor_last_name'),
+                ('occupation', 'employer'),
+                ('contributor_address_line_one', 'contributor_address_line_two'),
+                ('contributor_city', 'contributor_state'),
+                ('contributor_zip_code', 'contributor_zip_code_ext'),
+            ),
+        }),
+        ('Intermediary', {
+            'fields': (
+                ('intermediary_name', 'intermediary_city'),
+                ('intermediary_state', 'intermediary_zip_code'),
+                ('intermediary_occupation', 'intermediary_employer'),
+            ),
+        }),
+    )
 
 admin.site.register(LACityCandidate, LACityCandidateAdmin)
 admin.site.register(LACityCommittee, LACityCommitteeAdmin)
