@@ -81,7 +81,7 @@ custom_options = (
 class Command(BaseCommand):
     help = "Download, parse and load L.A. City campaign contributions"
     option_list = custom_options
-    
+
     def handle(self, *args, **options):
         # Just for now
         LACityContribution.objects.all().delete()
@@ -95,7 +95,8 @@ class Command(BaseCommand):
             data = parse_html(f.read())
             f.close()
         else:
-            base_url = "http://ethics.lacity.org/disclosure/campaign/search/public_search_results.cfm"
+            base_url = "http://ethics.lacity.org/disclosure/campaign/\
+search/public_search_results.cfm"
             payload = {
                 'viewtype': 'xl',
                 'requesttimeout': '1500',
@@ -109,18 +110,19 @@ class Command(BaseCommand):
             }
             logger.debug('Downloading LA City contributions')
             resp = requests.get(base_url, params=payload)
-            
+
             # Check to see if we have a valid response
             if 'the system is experiencing an unexpected error' in resp.text:
-                raise Exception("The website returned an error. Try a smaller date range.")
-            
+                raise Exception("The website returned an error. \
+Try a smaller date range.")
+
             # Parse the response
             logger.debug('Parsing LA City contributions')
             data = parse_html(resp.text)
-        
+
         # Load it into the db
         self.load(data)
-    
+
     def get_or_create_candidate(self, data):
         """
         Get or create a candidate object
@@ -135,9 +137,9 @@ class Command(BaseCommand):
                 first_name=data.get('first_name'),
                 last_name=data.get('last_name'),
             )
-        
+
         return candidate_obj
-    
+
     def get_or_create_committee(self, data):
         """
         Retrieve a committee object from the database,
@@ -160,11 +162,11 @@ class Command(BaseCommand):
                 committee_type=data['committee_type'],
                 lacitycandidate=candidate_obj,
             )
-        
+
         # Set the cache and return the object.
         self.committee_cache[committee_id] = committee_obj
         return committee_obj
-    
+
     def load(self, data):
         """
         Load our contributions into the database
@@ -177,11 +179,15 @@ class Command(BaseCommand):
             # Grab/create our committee and candidate objects
             committee_obj = self.get_or_create_committee(data_dict)
             # make the contrib object
-            fields = dict((k, v) for k, v in data_dict.items() if k in CONTRIBUTION_FIELDS)
+            fields = dict(
+                (k, v) for k, v in data_dict.items()
+                if k in CONTRIBUTION_FIELDS
+            )
             contrib = LACityContribution(**fields)
             contrib.lacitycommittee = committee_obj
             bulk_contribs.append(contrib)
         # Run our bulk create
-        logger.debug('Running bulk create on %s contributions' % len(bulk_contribs))
+        len_bulk = len(bulk_contribs)
+        logger.debug('Running bulk create on %s contributions' % len_bulk)
         LACityContribution.objects.bulk_create(bulk_contribs)
         logger.debug("Finished loading contribs")

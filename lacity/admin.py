@@ -1,5 +1,9 @@
 from django.contrib import admin
-from lacity.models import LACityContribution, LACityCommittee, LACityCandidate
+from lacity.models import (
+    LACityContribution,
+    LACityCandidate,
+    LACityCommittee
+)
 
 
 class LACityCandidateAdmin(admin.ModelAdmin):
@@ -69,7 +73,8 @@ class LACityContributionAdmin(admin.ModelAdmin):
             'fields': (
                 ('contributor_first_name', 'contributor_last_name'),
                 ('occupation', 'employer'),
-                ('contributor_address_line_one', 'contributor_address_line_two'),
+                ('contributor_address_line_one',
+                    'contributor_address_line_two'),
                 ('contributor_city', 'contributor_state'),
                 ('contributor_zip_code', 'contributor_zip_code_ext'),
             ),

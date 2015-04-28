@@ -3,8 +3,12 @@ import datetime
 from datetime import date
 from django.test import TestCase
 from django.core.management import call_command
-from lacity.models import LACityContribution, LACityCommittee, LACityCandidate
 from lacity.process import clean_string, parse_date, parse_html
+from lacity.models import (
+    LACityContribution,
+    LACityCandidate,
+    LACityCommittee
+)
 
 TEST_DATA_FILE = os.path.join(
     os.path.dirname(__file__), 'data', 'test_download.html'
@@ -23,7 +27,7 @@ class LACityTest(TestCase):
             'loadlacitycontributions',
             file_path=TEST_DATA_FILE,
         )
-    
+
     def test_object_counts(self):
         # Did we load the candidates?
         self.assertEqual(
@@ -43,7 +47,7 @@ class LACityTest(TestCase):
 
 
 class ProcessFunctionsTest(TestCase):
-    
+
     def test_clean_string(self):
         # Strip
         self.assertEqual(
@@ -64,7 +68,7 @@ class ProcessFunctionsTest(TestCase):
             clean_string(' ', return_none=True),
             None
         )
-    
+
     def test_parse_date(self):
         # blank strings are None
         self.assertEqual(
@@ -86,24 +90,26 @@ class ProcessFunctionsTest(TestCase):
             parse_date('01/01/15'),
             date(2015, 1, 1)
         )
-    
+
     def test_parse_html(self):
         data_file = open(TEST_DATA_FILE)
         data = data_file.read()
         parsed = parse_html(data)
         self.assertEqual(
             parsed[0],
-            [u'Preven', u'Eric', u'1374066',
-            u'Preven for LA City Council 2015',
-            u'C', u'CCM', u'C02', u'A', u'I',
-            datetime.date(2015, 1, 1),
-            datetime.date(2015, 1, 19),
-            datetime.date(2015, 3, 3),
-            datetime.date(2015, 1, 2),
-            u'500.0000', u'0.0000', u'', u'James',
-            u'Johnson', u'', u'', u'Studio City',
-            u'CA', u'91604', u'', u'Musician', u'Self',
-            u'', u'', u'CA', u'', u'', u'', u'',
-            u'8442', u'A573004']
+            [
+                u'Preven', u'Eric', u'1374066',
+                u'Preven for LA City Council 2015',
+                u'C', u'CCM', u'C02', u'A', u'I',
+                datetime.date(2015, 1, 1),
+                datetime.date(2015, 1, 19),
+                datetime.date(2015, 3, 3),
+                datetime.date(2015, 1, 2),
+                u'500.0000', u'0.0000', u'', u'James',
+                u'Johnson', u'', u'', u'Studio City',
+                u'CA', u'91604', u'', u'Musician', u'Self',
+                u'', u'', u'CA', u'', u'', u'', u'',
+                u'8442', u'A573004'
+            ]
         )
         data_file.close()

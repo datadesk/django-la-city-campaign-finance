@@ -34,11 +34,15 @@ class LACityContribution(models.Model):
     record_id = models.CharField(max_length=250, blank=True)
     # So we can keep track of when it was loaded
     load_date = models.DateField(auto_now_add=True)
-    lacitycommittee = models.ForeignKey('LACityCommittee', null=True, blank=True)
-    
+    lacitycommittee = models.ForeignKey(
+        'LACityCommittee',
+        null=True,
+        blank=True
+    )
+
     class Meta:
         ordering = ['date', '-amount_received', '-amount_paid']
-    
+
     def __unicode__(self):
         return '%s: %s' % (self.pk, self.amount_received)
 
@@ -48,10 +52,10 @@ class LACityCommittee(models.Model):
     committee_id = models.CharField(max_length=250)
     committee_type = models.CharField(max_length=250, blank=True)
     lacitycandidate = models.ForeignKey('LACityCandidate')
-        
+
     class Meta:
         ordering = ['name']
-    
+
     def __unicode__(self):
         return self.name
 
@@ -62,9 +66,9 @@ class LACityCandidate(models.Model):
     """
     first_name = models.CharField(max_length=250, blank=True)
     last_name = models.CharField(max_length=250, blank=True)
-    
+
     class Meta:
         ordering = ['last_name']
-    
+
     def __unicode__(self):
         return "%s, %s" % (self.last_name, self.first_name)
