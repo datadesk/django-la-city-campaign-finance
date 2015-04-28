@@ -18,8 +18,28 @@ class LACityTest(TestCase):
         """
         Load data into the database before running other tests.
         """
-        pass
-
+        super(LACityTest, cls).setUpClass()
+        call_command(
+            'loadlacitycontributions',
+            file_path=TEST_DATA_FILE,
+        )
+    
+    def test_load(self):
+        # Did we load the candidates?
+        self.assertEqual(
+            LACityCandidate.objects.count(),
+            31
+        )
+        # committees
+        self.assertEqual(
+            LACityCommittee.objects.count(),
+            33
+        )
+        # contributions
+        self.assertEqual(
+            LACityContribution.objects.count(),
+            171
+        )
 
 
 class ProcessFunctionsTest(TestCase):

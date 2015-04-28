@@ -56,16 +56,31 @@ CONTRIBUTION_FIELDS = [i.name for i in LACityContribution._meta.get_fields()]
 custom_options = (
     make_option(
         "--load-from-file",
-        action="store_false",
-        dest="download",
-        default=True,
-        help="Skip downloading of the ZIP archive"
+        action="store",
+        dest="file_path",
+        default=None,
+        help="Skip downloading and load the data from a file"
+    ),
+    make_option(
+        "--start-date",
+        action="store",
+        dest="start_date",
+        default='01/01/2010',
+        help="The start date for the contributions"
+    ),
+    make_option(
+        "--end-date",
+        action="store",
+        dest="end_date",
+        default='01/01/2020',
+        help="The end date for the contributions"
     ),
 )
 
 
 class Command(BaseCommand):
     help = "Download, parse and load L.A. City campaign contributions"
+    option_list = custom_options
     
     def handle(self, *args, **options):
         # Just for now
@@ -74,30 +89,35 @@ class Command(BaseCommand):
         LACityCommittee.objects.all().delete()
         # Make the committee lookup more efficient
         self.committee_cache = {}
-        # Grab the data
-        base_url = "http://ethics.lacity.org/disclosure/campaign/search/public_search_results.cfm"
-        payload = {
-            'viewtype': 'xl',
-            'requesttimeout': '1500',
-            'showall': 'yes',
-            'orderbydesc': 'no',
-            'REPT_TYPE': 'ALLCon',
-            'PER_TYPE': 'A',
-            'D_BDATE': '01/01/2000',
-            'D_EDATE': '06/01/2000',
-            # 'D_EDATE': '01/01/2020',
-            'SCHEDULE': 'A,B,C',
-        }
-        logger.debug('Downloading LA City contributions')
-        resp = requests.get(base_url, params=payload)
+        # Grab the data, checking if we download it or use a custom file
+        if options['file_path']:
+            f = open(options['file_path'])
+            data = parse_html(f.read())
+            f.close()
+        else:
+            base_url = "http://ethics.lacity.org/disclosure/campaign/search/public_search_results.cfm"
+            payload = {
+                'viewtype': 'xl',
+                'requesttimeout': '1500',
+                'showall': 'yes',
+                'orderbydesc': 'no',
+                'REPT_TYPE': 'ALLCon',
+                'PER_TYPE': 'A',
+                'D_BDATE': options['start_date'],
+                'D_EDATE': options['end_date'],
+                'SCHEDULE': 'A,B,C',
+            }
+            logger.debug('Downloading LA City contributions')
+            resp = requests.get(base_url, params=payload)
+            
+            # Check to see if we have a valid response
+            if 'the system is experiencing an unexpected error' in resp.text:
+                raise Exception("The website returned an error. Try a smaller date range.")
+            
+            # Parse the response
+            logger.debug('Parsing LA City contributions')
+            data = parse_html(resp.text)
         
-        # Check to see if we have a valid response
-        if 'the system is experiencing an unexpected error' in resp.text:
-            raise Exception("The website returned an error. Try a smaller date range.")
-        
-        # Parse the response
-        logger.debug('Parsing LA City contributions')
-        data = parse_html(resp.text)
         # Load it into the db
         self.load(data)
     
