@@ -1,0 +1,25 @@
+language: python
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+
+python:
+ - "2.7"
+
+env:
+ - DJANGO_VERSION=1.7
+ - DJANGO_VERSION=1.8
+
+install:
+ - export XDG_CACHE_HOME=$HOME/.cache/
+ - pip install -r requirements.txt
+ - pip uninstall -y Django
+ - pip install -q Django==$DJANGO_VERSION
+
+script:
+ - pep8 lacity
+ - pyflakes lacity
+ - coverage run manage.py test lacity
