@@ -1,10 +1,14 @@
 import logging
 import requests
+from optparse import make_option
 from collections import OrderedDict
 from lacity.process import parse_html, parse_date
 from django.core.management.base import BaseCommand
-from lacity.models import (LACityContribution,
-    LACityCandidate, LACityCommittee)
+from lacity.models import (
+    LACityContribution,
+    LACityCandidate,
+    LACityCommittee
+)
 
 # Some globals
 logger = logging.getLogger('lacity')
@@ -48,6 +52,16 @@ COLUMN_TO_FIELD = OrderedDict([
 HEADERS = COLUMN_TO_FIELD.values()
 FIELD_TO_COLUMN = dict(zip(COLUMN_TO_FIELD.values(), COLUMN_TO_FIELD.keys()))
 CONTRIBUTION_FIELDS = [i.name for i in LACityContribution._meta.get_fields()]
+
+custom_options = (
+    make_option(
+        "--load-from-file",
+        action="store_false",
+        dest="download",
+        default=True,
+        help="Skip downloading of the ZIP archive"
+    ),
+)
 
 
 class Command(BaseCommand):

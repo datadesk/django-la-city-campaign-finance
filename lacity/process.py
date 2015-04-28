@@ -24,7 +24,7 @@ def clean_string(value, return_none=False):
 
 def parse_date(datestring):
     """
-    Takes a date formatted like "2014-06-03 00:00:00.0"
+    Takes a date formatted like "01/01/15 00:00:00.0"
     
     Removes the bogus time, and returns a Python
     date object.
@@ -32,7 +32,7 @@ def parse_date(datestring):
     if datestring == None or datestring == '':
         return None
     
-    datestring = datestring[:10]
+    datestring = datestring[:8]
     return datetime.strptime(datestring, '%m/%d/%y').date()
 
 def parse_html(html):
