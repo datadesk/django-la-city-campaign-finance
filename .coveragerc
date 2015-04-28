@@ -1,0 +1,13 @@
+[run]
+include =
+    lacity/models.py
+    lacity/process.py
+    lacity/admin.py
+    lacity/urls.py
+    lacity/views.py
+    lacity/management/commands/loadlacitycontributions.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    add_introspection_rules

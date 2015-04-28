@@ -2,7 +2,7 @@ import logging
 import requests
 from optparse import make_option
 from collections import OrderedDict
-from lacity.process import parse_html, parse_date
+from lacity.process import parse_html
 from django.core.management.base import BaseCommand
 from lacity.models import (
     LACityContribution,

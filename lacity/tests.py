@@ -24,7 +24,7 @@ class LACityTest(TestCase):
             file_path=TEST_DATA_FILE,
         )
     
-    def test_load(self):
+    def test_object_counts(self):
         # Did we load the candidates?
         self.assertEqual(
             LACityCandidate.objects.count(),
