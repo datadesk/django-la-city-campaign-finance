@@ -21,22 +21,23 @@ COLUMN_TO_FIELD = OrderedDict([
     ('Office Type', 'office_type'),
     ('District Number', 'district_number'),
     ('Schedule', 'schedule'),
-    ('Type', 'contribution_type'),
     ('Period Beg Date', 'filing_start_date'),
     ('Period End Date', 'filing_end_date'),
     ('Election Date', 'election_date'),
-    ('Date', 'date'),
+    ('Contr Date', 'date'),
     ('Amount Rcvd', 'amount_received'),
     ('Amount Pd', 'amount_paid'),
     ('Description', 'description'),
-    ('Contributor First Name', 'contributor_first_name'),
-    ('Contributor Last Name', 'contributor_last_name'),
-    ('Contributor Address', 'contributor_address_line_one'),
-    ('Contributor Address 2', 'contributor_address_line_two'),
-    ('Contributor City', 'contributor_city'),
-    ('Contributor State', 'contributor_state'),
-    ('Contributor Zip Code', 'contributor_zip_code'),
-    ('Contributor Zip Code Ext', 'contributor_zip_code_ext'),
+    ('Contr Type', 'contribution_type'),
+    ('Contr First Name', 'contributor_first_name'),
+    ('Contr Last Name', 'contributor_last_name'),
+    ('Contr Committee ID', 'contributor_committee_id'),
+    ('Contr Address', 'contributor_address_line_one'),
+    ('Contr Address 2', 'contributor_address_line_two'),
+    ('Contr City', 'contributor_city'),
+    ('Contr State', 'contributor_state'),
+    ('Contr Zip Code', 'contributor_zip_code'),
+    ('Contr Zip Code Ext', 'contributor_zip_code_ext'),
     ('Occupation', 'occupation'),
     ('Employer', 'employer'),
     ('Int Name', 'intermediary_name'),
@@ -53,34 +54,33 @@ HEADERS = COLUMN_TO_FIELD.values()
 FIELD_TO_COLUMN = dict(zip(COLUMN_TO_FIELD.values(), COLUMN_TO_FIELD.keys()))
 CONTRIBUTION_FIELDS = [i.name for i in LACityContribution._meta.get_fields()]
 
-custom_options = (
-    make_option(
-        "--load-from-file",
-        action="store",
-        dest="file_path",
-        default=None,
-        help="Skip downloading and load the data from a file"
-    ),
-    make_option(
-        "--start-date",
-        action="store",
-        dest="start_date",
-        default='01/01/2010',
-        help="The start date for the contributions"
-    ),
-    make_option(
-        "--end-date",
-        action="store",
-        dest="end_date",
-        default='01/01/2020',
-        help="The end date for the contributions"
-    ),
-)
-
 
 class Command(BaseCommand):
     help = "Download, parse and load L.A. City campaign contributions"
-    option_list = custom_options
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--load-from-file",
+            action="store",
+            dest="file_path",
+            default=None,
+            help="Skip downloading and load the data from a file"
+        )
+        parser.add_argument(
+            "--start-date",
+            action="store",
+            dest="start_date",
+            default='01/01/2010',
+            help="The start date for the contributions"
+        )
+        parser.add_argument(
+            "--end-date",
+            action="store",
+            dest="end_date",
+            default='01/01/2020',
+            help="The end date for the contributions"
+        )
+
 
     def handle(self, *args, **options):
         # Just for now
