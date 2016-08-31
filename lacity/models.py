@@ -11,6 +11,7 @@ class LACityContribution(models.Model):
     employer = models.CharField(max_length=250, blank=True)
     contributor_first_name = models.CharField(max_length=250, blank=True)
     contributor_last_name = models.CharField(max_length=250, blank=True)
+    contributor_committee_id = models.CharField(max_length=250, blank=True)
     contributor_address_line_one = models.CharField(max_length=250, blank=True)
     contributor_address_line_two = models.CharField(max_length=250, blank=True)
     contributor_city = models.CharField(max_length=250, blank=True)
